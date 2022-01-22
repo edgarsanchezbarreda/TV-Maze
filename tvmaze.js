@@ -13,21 +13,24 @@
       }
  */
 async function searchShows(query) {
-  // let queryVal = $("#search-query").val();
-  const response = await axios.get(`https://api.tvmaze.com/search/shows?q=${query}`);
-  let shows = response.data.map(result => {
-    let show = result.show;
-    const defaultImg = 'https://tinyurl.com/tv-missing';
-    return {
-        id: show.id,
-        name : show.name,
-        summary: show.summary,
-        image: show.image ? show.image.medium : defaultImg,
-      };
+  let queryVal = $("#search-query").val();
+  const response = await axios.get('https://api.tvmaze.com/search/shows', 
+    {params : {
+      q : queryVal
+    }
   });
+  const shows = response.data[0].show
   // console.log(shows);
   
-  return shows;
+  const defaultImg = 'https://tinyurl.com/tv-missing';
+  return [
+    {
+      id: shows.id,
+      name : shows.name,
+      summary: shows.summary,
+      image: shows.image ? shows.image.medium : defaultImg
+    }
+  ]
 }
 
 
