@@ -13,24 +13,21 @@
       }
  */
 async function searchShows(query) {
-  let queryVal = $("#search-query").val();
-  const response = await axios.get('https://api.tvmaze.com/search/shows', 
-    {params : {
-      q : queryVal
-    }
+  // let queryVal = $("#search-query").val();
+  const response = await axios.get(`https://api.tvmaze.com/search/shows?q=${query}`);
+  let shows = response.data.map(result => {
+    let show = result.show;
+    const defaultImg = 'https://tinyurl.com/tv-missing';
+    return {
+        id: show.id,
+        name : show.name,
+        summary: show.summary,
+        image: show.image ? show.image.medium : defaultImg,
+      };
   });
-  const shows = response.data[0].show
   // console.log(shows);
   
-  const defaultImg = 'https://tinyurl.com/tv-missing';
-  return [
-    {
-      id: shows.id,
-      name : shows.name,
-      summary: shows.summary,
-      image: shows.image ? shows.image.medium : defaultImg
-    }
-  ]
+  return shows;
 }
 
 
@@ -51,6 +48,7 @@ function populateShows(shows) {
            <div class="card-body">
              <h5 class="card-title">${show.name}</h5>
              <p class="card-text">${show.summary}</p>
+             <button class="btn btn-primary get-episodes">Episodes</button>
            </div>
          </div>
        </div>
@@ -85,30 +83,30 @@ $("#search-form").on("submit", async function handleSearch (evt) {
  */
 
 async function getEpisodes(id) {
-  const episodeResponse = await axios.get(`http://api.tvmaze.com/shows/${id}/episodes`);
+  let episodeResponse = await axios.get(`http://api.tvmaze.com/shows/${id}/episodes`);
   console.log(episodeResponse);
   let episodes = episodeResponse.data.map(episode => ({
     id: episode.id,
     name:episode.name,
     season: episode.season,
     number: episode.number
-  }))
+  }));
 
   return episodes;
 }
 
 function populateEpisodes(episodes){
-  const $episodesList = $('#episodes-list');
+  const $episodesList = $("#episodes-list");
   $episodesList.empty();
 
   for (let episode of episodes){
-    let $ep = $(
+    let $item = $(
       `<li>
       ${episode.name}
       (season ${episode.season}, episode ${episode.number})
       </li>
       `);
-      $episodesList.append($ep);
+      $episodesList.append($item);
   }
   $('#episodes-area').show();
 }
@@ -116,5 +114,6 @@ function populateEpisodes(episodes){
 $("#shows-list").on("click", ".get-episodes", async function handleEpisodeClick(evt) {
   let showId = $(evt.target).closest(".Show").data("show-id");
   let episodes = await getEpisodes(showId);
-  populateEpisodes(epArr);
+  populateEpisodes(episodes);
+  // console.log('clicked');
 });
